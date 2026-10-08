@@ -1,9 +1,9 @@
 /* =====================================================================
    CONFIGURADOR 3D — RACING NETS
    - Variantes de cuadrícula (2x2, 3x2, 4x3, 4x4) recalculadas al vuelo
-   - Cuadrícula llena: una tira interna entre cada par de tiras de la variante
+   - Cuadrícula llena: cada hueco entre tiras se tapa con una cruz de un solo color
    - Tiras salidas largas con rabito doblado; con refuerzo al motor también
-     se alargan las internas (Competition y Elite Pro)
+     salen tiras largas desde las cruces (Competition y Elite Pro)
    - Refuerzo sándwich: dos capas del mismo ancho, cada una con su color
    - Textura de nylon (webbing), costura industrial "caja con X"
    - Tejido real: cada tira sube y baja en los cruces, con oclusión
@@ -52,7 +52,7 @@
   const state = {
     variant:'4x4', model:'elite', sandwich:true, motor:true,
     // main/accent = capa de arriba; mainBot/accentBot = capa de abajo (solo con sándwich)
-    main:0xE60000, mainBot:0xE60000, accent:0x1a1a1a, accentBot:0x1a1a1a, thread:0xF2F2F2,
+    main:0x1a1a1a, mainBot:0x1a1a1a, accent:0x1a1a1a, accentBot:0x1a1a1a, cruz:0xE60000, thread:0xF2F2F2,
     patch:true, pBase:0x1a1a1a, pBrush:0xE60000, pDrip:0x3A3A3A, style:'piloto',
     nombre:'NOMBRE', numero:'31', marca:'MARCA', modelo:'450R'
   };
@@ -139,6 +139,7 @@
   const accentMat = strapMaterial(state.accent);
   const mainBotMat = strapMaterial(state.mainBot);
   const accentBotMat = strapMaterial(state.accentBot);
+  const cruzMat = strapMaterial(state.cruz);
   const threadMat = new THREE.MeshStandardMaterial({ color: linColor(state.thread), roughness: 0.55 });
 
   /* ---------------- costura industrial (caja con X) ---------------- */
@@ -640,6 +641,13 @@
     return { zEnd, R };
   }
 
+  // Refuerzo al motor: capa extra encima de la tira larga, desde la orilla de la red hasta el rabito
+  function addMotorLayer(st, dir, bodyEdge, endP, zf){
+    const p1 = bodyEdge + dir * 0.05, p2 = endP - dir * 0.16;
+    addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from: Math.min(p1, p2), to: Math.max(p1, p2),
+      width: SW * 0.98, thick: TH * 0.52, zf: p => zf(p) + TH * 0.72 }), st.mat);
+  }
+
   function buildNet(){
     clearNet();
     const [nV, nH] = VARIANTS[state.variant];
@@ -648,11 +656,11 @@
     const xs = Array.from({ length: nV }, (_, i) => -bw / 2 + i * s);
     const ys = Array.from({ length: nH }, (_, j) => -bh / 2 + j * s);
     const sand = state.sandwich, motor = state.motor;
-    // Cuadrícula llena: entre cada par de tiras de la variante va una tira interna
+    // Cuadrícula llena: en cada hueco entre tiras va una cruz (ver más abajo)
     const mids = a => a.slice(1).map((v, i) => (v + a[i]) / 2);
     const allX = xs.concat(mids(xs)).sort((a, b) => a - b);
     const allY = ys.concat(mids(ys)).sort((a, b) => a - b);
-    const mainX = new Set(xs), mainY = new Set(ys);
+    const mainX = new Set(xs);
     const t = TH;
     const layer2 = t + GAP;
     // Separación entre los tres niveles de tiras (con sándwich cada tira son dos capas)
@@ -660,17 +668,13 @@
     const h = SW * 0.55, decay = 0.32;
     const edgeStitches = [];
 
-    // Tres niveles, sin intercalar: verticales de la variante al frente, todas las horizontales
-    // en medio y las verticales internas detrás. Así cada hueco queda tapado por pedazos de
-    // tira cosidos (la interna solo asoma entre horizontal y horizontal) y se ve la cuadrícula.
+    // Tres niveles, sin intercalar: verticales al frente, horizontales en medio y, detrás,
+    // los brazos verticales de las cruces que tapan los huecos.
     const rnd = rng(31 + nV * 13 + nH * 7);
     const straps = [];
-    allX.forEach(x => {
-      const main = mainX.has(x);
-      straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main,
-        knots: allY.map(q => ({ q, s: main ? 1 : -1 })), under: main ? [] : allY });
-    });
-    allY.forEach(y => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat, main: mainY.has(y),
+    xs.forEach(x => straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat,
+      knots: allY.map(q => ({ q, s: 1 })), under: [] }));
+    ys.forEach(y => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat,
       knots: allX.map(q => ({ q, s: 0 })), under: xs }));
 
     straps.forEach(st => {
@@ -679,12 +683,8 @@
       const slopeB = Math.tan((4 + rnd() * 6) * Math.PI / 180);
       const ao = makeAO(st.under.map(q => ({ q, s: -1 })), SW);
 
-      // Las tiras de la variante siempre salen largas por las dos puntas; las internas solo
-      // con refuerzo al motor. Las que no salen terminan justo en la orilla de la red.
-      const isLong = st.main || motor;
-      const from = isLong ? first - EXT : first - h - 0.02;
-      const to = isLong ? last + EXT : last + h + 0.02;
-      const zf = makeProfile(kn, amp, h, decay, isLong ? slopeA : 0, isLong ? slopeB : 0);
+      const from = first - EXT, to = last + EXT;
+      const zf = makeProfile(kn, amp, h, decay, slopeA, slopeB);
       addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to, width: SW, thick: t, zf, ao }), st.mat);
 
       // Refuerzo sándwich: segunda tira del mismo ancho pegada por debajo, con su propio color
@@ -700,20 +700,46 @@
       }
 
       // Tiras largas: refuerzo al motor y rabito doblado
-      if (isLong) [-1, 1].forEach(dir => {
+      [-1, 1].forEach(dir => {
         const endP = dir > 0 ? to : from;
         const bodyEdge = dir > 0 ? last + h + decay : first - h - decay;
-
-        if (motor){
-          const p1 = bodyEdge + dir * 0.05, p2 = endP - dir * 0.16;
-          const a0 = Math.min(p1, p2), b0 = Math.max(p1, p2);
-          addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from: a0, to: b0, width: SW * 0.98, thick: t * 0.52,
-            zf: p2v => zf(p2v) + t * 0.72 }), st.mat);
-        }
-
+        if (motor) addMotorLayer(st, dir, bodyEdge, endP, zf);
         addTail(st, dir, endP, zf, SW, SW * 1.0, SW * 1.55, true);
       });
     });
+
+    // Cruces: cada hueco de la cuadrícula se tapa con una cruz de un solo color, cosida al
+    // centro, con los brazos metidos bajo las tiras que rodean el hueco (como la Elite Pro real).
+    // El brazo horizontal va al nivel de las horizontales; el vertical, detrás de él.
+    const tuck = 0.06;
+    function crossArm(axis, fixed, from, to, level, under, zf){
+      const ao = makeAO(under.map(q => ({ q, s: -1 })), SW);
+      zf = zf || (() => level);
+      addMesh(buildRibbon({ axis, fixed, from, to, width: SW, thick: t, zf, ao }), cruzMat);
+      if (sand) addMesh(buildRibbon({ axis, fixed, from, to, width: SW, thick: t, zf, offset: layer2, ao }), cruzMat);
+    }
+    const cxs = mids(xs), cys = mids(ys);
+    cxs.forEach((cx, i) => cys.forEach((cy, j) => {
+      crossArm('v', cx, ys[j] + SW / 2 - tuck, ys[j + 1] - SW / 2 + tuck, -amp, [ys[j], cy, ys[j + 1]]);
+      crossArm('h', cy, xs[i] + SW / 2 - tuck, xs[i + 1] - SW / 2 + tuck, 0, [xs[i], xs[i + 1]]);
+    }));
+
+    // Refuerzo al motor: desde las cruces de la orilla salen tiras largas del mismo color,
+    // por arriba, por abajo y a los lados
+    if (motor){
+      const longOut = (axis, fixed, edgeQ, dir, level) => {
+        const slope = Math.tan((4 + rnd() * 6) * Math.PI / 180);
+        const zf = makeProfile([{ q: edgeQ, s: level < 0 ? -1 : 0 }], amp, h, decay,
+          dir < 0 ? slope : 0, dir > 0 ? slope : 0);
+        const start = edgeQ - dir * (SW / 2 - tuck), endP = edgeQ + dir * EXT;
+        const st = { axis, fixed, mat: cruzMat };
+        crossArm(axis, fixed, Math.min(start, endP), Math.max(start, endP), level, [edgeQ], zf);
+        addMotorLayer(st, dir, edgeQ + dir * (h + decay), endP, zf);
+        addTail(st, dir, endP, zf, SW, SW * 1.0, SW * 1.55, true);
+      };
+      cxs.forEach(cx => { longOut('v', cx, ys[0], -1, -amp); longOut('v', cx, ys[ys.length - 1], 1, -amp); });
+      cys.forEach(cy => { longOut('h', cy, xs[0], -1, 0); longOut('h', cy, xs[xs.length - 1], 1, 0); });
+    }
 
     // Costura caja-X en cada cruce (frente de la tira de arriba y reverso de la de abajo).
     // Con vertical de la variante: arriba la vertical, abajo la horizontal;
@@ -919,6 +945,7 @@
   swatches('cfgMainBotSwatches', state.mainBot, hex => { state.mainBot = hex; mainBotMat.color.copy(linColor(hex)); });
   swatches('cfgAccentSwatches', state.accent, hex => { state.accent = hex; accentMat.color.copy(linColor(hex)); });
   swatches('cfgAccentBotSwatches', state.accentBot, hex => { state.accentBot = hex; accentBotMat.color.copy(linColor(hex)); });
+  swatches('cfgCrossSwatches', state.cruz, hex => { state.cruz = hex; cruzMat.color.copy(linColor(hex)); });
   syncToggles();
   swatches('cfgThreadSwatches', state.thread, hex => {
     state.thread = hex; threadMat.color.copy(linColor(hex));
@@ -1026,7 +1053,7 @@
       const capas = (top, bot) => state.sandwich
         ? 'arriba ' + colorName(top) + ' / abajo ' + colorName(bot) : colorName(top);
       const colores = ['verticales ' + capas(state.main, state.mainBot), 'horizontales ' + capas(state.accent, state.accentBot),
-        'hilo ' + colorName(state.thread)];
+        'cruces ' + colorName(state.cruz), 'hilo ' + colorName(state.thread)];
       const parche = !state.patch ? 'sin parche'
         : 'fondo ' + colorName(state.pBase) + ', brochazos ' + colorName(state.pBrush) + ', manchas ' + colorName(state.pDrip) + ' — ' + textos;
       const msg = [

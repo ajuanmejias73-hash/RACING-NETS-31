@@ -654,25 +654,30 @@
     const allY = ys.concat(mids(ys)).sort((a, b) => a - b);
     const mainX = new Set(xs), mainY = new Set(ys);
     const t = TH;
-    const amp = sand ? t * 1.3 + GAP : t * 0.6 + 0.004;
-    const h = SW * 0.55, decay = 0.32;
     const layer2 = t + GAP;
+    // Separación entre los tres niveles de tiras (con sándwich cada tira son dos capas)
+    const amp = sand ? 2 * t + 2 * GAP : t + 0.008;
+    const h = SW * 0.55, decay = 0.32;
     const edgeStitches = [];
 
-    // Sin intercalar: todas las verticales van al frente y todas las horizontales detrás;
-    // las internas van en la misma línea que las demás, tapando el hueco
+    // Tres niveles, sin intercalar: verticales de la variante al frente, todas las horizontales
+    // en medio y las verticales internas detrás. Así cada hueco queda tapado por pedazos de
+    // tira cosidos (la interna solo asoma entre horizontal y horizontal) y se ve la cuadrícula.
     const rnd = rng(31 + nV * 13 + nH * 7);
     const straps = [];
-    allX.forEach(x => straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main: mainX.has(x),
-      knots: allY.map(q => ({ q, s: 1 })) }));
+    allX.forEach(x => {
+      const main = mainX.has(x);
+      straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main,
+        knots: allY.map(q => ({ q, s: main ? 1 : -1 })), under: main ? [] : allY });
+    });
     allY.forEach(y => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat, main: mainY.has(y),
-      knots: allX.map(q => ({ q, s: -1 })) }));
+      knots: allX.map(q => ({ q, s: 0 })), under: xs }));
 
     straps.forEach(st => {
       const kn = st.knots, first = kn[0].q, last = kn[kn.length - 1].q;
       const slopeA = Math.tan((4 + rnd() * 6) * Math.PI / 180);
       const slopeB = Math.tan((4 + rnd() * 6) * Math.PI / 180);
-      const ao = makeAO(kn, SW);
+      const ao = makeAO(st.under.map(q => ({ q, s: -1 })), SW);
 
       // Las tiras de la variante siempre salen largas por las dos puntas; las internas solo
       // con refuerzo al motor. Las que no salen terminan justo en la orilla de la red.
@@ -688,7 +693,7 @@
         addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to,
           width: SW, thick: t, zf, offset: layer2, ao }), st.bot);
         for (let p = first - h; p <= last + h; p += 0.075){
-          const underHere = kn.some(k => k.s < 0 && Math.abs(p - k.q) < h * 1.15);
+          const underHere = st.under.some(q => Math.abs(p - q) < h * 1.15);
           if (underHere) continue;
           [-1, 1].forEach(side => edgeStitches.push({ st, p, side, zf }));
         }
@@ -710,11 +715,14 @@
       });
     });
 
-    // Costura caja-X en cada cruce (frente de la tira de arriba y reverso de la de abajo)
+    // Costura caja-X en cada cruce (frente de la tira de arriba y reverso de la de abajo).
+    // Con vertical de la variante: arriba la vertical, abajo la horizontal;
+    // con vertical interna: arriba la horizontal, abajo la interna.
     const cGeo = new THREE.PlaneGeometry(SW * 0.88, SW * 0.88);
-    const frontZ = amp + t * 0.5 + 0.0015;
-    const backZ = -amp - t * 0.5 - (sand ? layer2 : 0) - 0.0015;
     allX.forEach(x => allY.forEach(y => {
+      const topLevel = mainX.has(x) ? amp : 0, botLevel = mainX.has(x) ? 0 : -amp;
+      const frontZ = topLevel + t * 0.5 + 0.0015;
+      const backZ = botLevel - t * 0.5 - (sand ? layer2 : 0) - 0.0015;
       const f = new THREE.Mesh(cGeo, crossMat); f.position.set(x, y, frontZ);
       const b = new THREE.Mesh(cGeo, crossMat); b.position.set(x, y, backZ); b.rotation.y = Math.PI;
       f.renderOrder = b.renderOrder = 2;

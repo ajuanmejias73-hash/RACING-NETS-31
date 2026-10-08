@@ -655,19 +655,18 @@
     const mainX = new Set(xs), mainY = new Set(ys);
     const t = TH;
     const amp = sand ? t * 1.3 + GAP : t * 0.6 + 0.004;
-    const h = SW * 0.51, decay = 0.32;
+    const h = SW * 0.55, decay = 0.32;
     const layer2 = t + GAP;
     const edgeStitches = [];
 
-    // Tejido alterno: en cada cruce una tira va arriba y la otra abajo (como damero),
-    // así con la cuadrícula llena se ven los colores de verticales y horizontales
-    const over = (i, j) => (i + j) % 2 === 0 ? 1 : -1;
+    // Sin intercalar: todas las verticales van al frente y todas las horizontales detrás;
+    // las internas van en la misma línea que las demás, tapando el hueco
     const rnd = rng(31 + nV * 13 + nH * 7);
     const straps = [];
-    allX.forEach((x, i) => straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main: mainX.has(x),
-      knots: allY.map((q, j) => ({ q, s: over(i, j) })) }));
-    allY.forEach((y, j) => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat, main: mainY.has(y),
-      knots: allX.map((q, i) => ({ q, s: -over(i, j) })) }));
+    allX.forEach(x => straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main: mainX.has(x),
+      knots: allY.map(q => ({ q, s: 1 })) }));
+    allY.forEach(y => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat, main: mainY.has(y),
+      knots: allX.map(q => ({ q, s: -1 })) }));
 
     straps.forEach(st => {
       const kn = st.knots, first = kn[0].q, last = kn[kn.length - 1].q;

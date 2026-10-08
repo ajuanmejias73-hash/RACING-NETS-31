@@ -388,24 +388,23 @@
   .cfg-toggle em{font-style:normal; color:var(--c-gray-3); font-size:12px; margin-left:2px;}
   .cfg-toggle input{accent-color:var(--c-red); width:17px; height:17px; margin:0;}
   .cfg-toggle:has(input:checked){border-color:var(--c-red);}
+  .cfg-controls [hidden]{display:none !important;}
   .cfg-color-row{display:flex; flex-direction:column; gap:6px;}
-  .cfg-swatches{display:flex; flex-wrap:wrap; gap:8px;}
+  .cfg-picked{font-weight:600; color:var(--c-white); letter-spacing:1px; margin-left:6px;}
+  .cfg-picked::before{content:'· '; color:var(--c-gray-3);}
+  .cfg-swatches{display:flex; flex-wrap:wrap; gap:6px;}
+  .cfg-swatch-break{flex-basis:100%; height:0;}
   .cfg-swatch{
-    width:30px; height:30px; border-radius:50%; border:2px solid rgba(0,0,0,0.18);
+    width:26px; height:26px; border-radius:50%; border:2px solid rgba(0,0,0,0.18);
     cursor:pointer; transition:transform .15s, box-shadow .15s; padding:0;
   }
   .cfg-swatch:hover{ transform:scale(1.1); }
-  .cfg-swatch.active{ box-shadow:0 0 0 3px var(--c-bg), 0 0 0 5px var(--c-red); transform:scale(1.08); }
+  .cfg-swatch.active{ box-shadow:0 0 0 2px var(--c-bg), 0 0 0 4px var(--c-red); transform:scale(1.08); }
+  .cfg-label-row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .cfg-toggle-sm{padding:6px 11px; font-size:13px;}
+  .cfg-patch-body{display:flex; flex-direction:column; gap:12px;}
   .cfg-patch{display:grid; grid-template-columns:150px 1fr; gap:16px; align-items:start;}
   #cfgPatchPreview{width:150px; height:150px; border-radius:10px; border:1px solid var(--c-gray-4); background:#111; box-shadow:0 8px 20px rgba(0,0,0,0.2);}
-  .cfg-patch-side{display:flex; flex-direction:column; gap:8px;}
-  .cfg-themes{display:flex; flex-wrap:wrap; gap:8px;}
-  .cfg-theme{
-    width:44px; height:44px; border-radius:10px; border:2px solid rgba(0,0,0,0.15); cursor:pointer; padding:0;
-    transition:transform .15s, box-shadow .15s;
-  }
-  .cfg-theme:hover{transform:scale(1.06);}
-  .cfg-theme.active{box-shadow:0 0 0 3px var(--c-bg), 0 0 0 5px var(--c-red);}
   .cfg-fields{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .cfg-fields label{display:flex; flex-direction:column; gap:4px;}
   .cfg-fields.is-custom label{opacity:0.45;}
@@ -424,10 +423,8 @@
   }
   @media (max-width: 640px){
     .cfg-canvas-wrap #cfgCanvas{ height:340px !important; }
-    .cfg-patch{grid-template-columns:120px 1fr; gap:12px;}
+    .cfg-patch{grid-template-columns:1fr; gap:12px;}
     #cfgPatchPreview{width:120px; height:120px;}
-    .cfg-theme{width:32px; height:32px;}
-    .cfg-themes{gap:6px;}
     .cfg-swatches{gap:5px !important;}
     .cfg-swatch{width:26px !important; height:26px !important;}
     .cfg-seg button{padding:8px 13px; font-size:13px;}
@@ -486,6 +483,31 @@
     background:var(--c-black); color:var(--c-onDark); border-radius:999px;
     font-family:var(--font-osw); font-size:12.5px; letter-spacing:0.3px; line-height:1.3;
     padding:7px 14px; margin-top:auto;
+  }
+  /* categorías: cuadraciclos / UTV / automovilismo */
+  .model-cat-head{
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+    padding-bottom:14px; margin-bottom:26px; border-bottom:1px solid var(--c-gray-4);
+  }
+  .model-cat-num{font-family:var(--font-osw); font-size:13px; font-weight:600; letter-spacing:2px; color:var(--c-red);}
+  .model-cat-head h3{
+    font-family:var(--font-display); font-size:28px; font-weight:700; line-height:1.1;
+    text-transform:uppercase; letter-spacing:1px; color:var(--c-white);
+  }
+  .model-cat-head p{margin-left:auto; color:var(--c-gray-3); font-size:14.5px;}
+  .model-cat-duo{display:grid; grid-template-columns:1fr 1fr; gap:56px 26px; margin-top:64px;}
+  .model-cat-duo .model-cat{display:flex; flex-direction:column;}
+  .model-cat-duo .model-card{flex:1;}
+  .model-card-wide{flex-direction:row;}
+  .model-card-wide .model-thumb{aspect-ratio:auto; width:42%; flex-shrink:0; border-radius:20px 0 0 20px;}
+  @media (max-width: 1080px){ .model-cat-duo{grid-template-columns:1fr;} }
+  @media (max-width: 640px){
+    .model-cat-duo{margin-top:48px; row-gap:48px;}
+    .model-cat-head{margin-bottom:20px;}
+    .model-cat-head h3{font-size:24px;}
+    .model-cat-head p{margin-left:0; flex-basis:100%;}
+    .model-card-wide{flex-direction:column;}
+    .model-card-wide .model-thumb{width:auto; aspect-ratio:16/11; border-radius:20px 20px 0 0;}
   }
 
   /* -------- technology / specs -------- */

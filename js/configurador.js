@@ -674,14 +674,12 @@
       const slopeB = Math.tan((4 + rnd() * 6) * Math.PI / 180);
       const ao = makeAO(kn, SW);
 
-      // Qué puntas salen largas: las tiras de la variante siempre; las internas solo con
-      // refuerzo al motor (verticales por arriba, horizontales por los dos lados).
-      // Las que no salen terminan justo en la orilla de la red.
-      const longA = st.main || (motor && st.axis === 'h');
-      const longB = st.main || motor;
-      const from = longA ? first - EXT : first - h - 0.02;
-      const to = longB ? last + EXT : last + h + 0.02;
-      const zf = makeProfile(kn, amp, h, decay, longA ? slopeA : 0, longB ? slopeB : 0);
+      // Las tiras de la variante siempre salen largas por las dos puntas; las internas solo
+      // con refuerzo al motor. Las que no salen terminan justo en la orilla de la red.
+      const isLong = st.main || motor;
+      const from = isLong ? first - EXT : first - h - 0.02;
+      const to = isLong ? last + EXT : last + h + 0.02;
+      const zf = makeProfile(kn, amp, h, decay, isLong ? slopeA : 0, isLong ? slopeB : 0);
       addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to, width: SW, thick: t, zf, ao }), st.mat);
 
       // Refuerzo sándwich: segunda tira del mismo ancho pegada por debajo, con su propio color
@@ -697,8 +695,7 @@
       }
 
       // Tiras largas: refuerzo al motor y rabito doblado
-      [[-1, longA], [1, longB]].forEach(([dir, isLong]) => {
-        if (!isLong) return;
+      if (isLong) [-1, 1].forEach(dir => {
         const endP = dir > 0 ? to : from;
         const bodyEdge = dir > 0 ? last + h + decay : first - h - decay;
 

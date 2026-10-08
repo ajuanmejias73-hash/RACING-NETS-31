@@ -1,9 +1,10 @@
 /* =====================================================================
    CONFIGURADOR 3D — RACING NETS
    - Variantes de cuadrícula (2x2, 3x2, 4x3, 4x4) recalculadas al vuelo
-   - Tiras salidas largas con rabito doblado
-   - Cintas de ajuste entre tiras, con hebilla plástica (Competition y Elite Pro)
-   - Refuerzo sándwich (doble capa con color propio) y refuerzo al motor
+   - Cuadrícula llena: una tira interna entre cada par de tiras de la variante
+   - Tiras salidas largas con rabito doblado; con refuerzo al motor también
+     se alargan las internas (Competition y Elite Pro)
+   - Refuerzo sándwich: dos capas del mismo ancho, cada una con su color
    - Textura de nylon (webbing), costura industrial "caja con X"
    - Tejido real: cada tira sube y baja en los cruces, con oclusión
    - Parche opcional: machote de brochazos con colores libres y textos con contorno
@@ -42,15 +43,16 @@
 
   const VARIANTS = { '2x2':[2,2], '3x2':[3,2], '4x3':[4,3], '4x4':[4,4] };
   const MODELS = {
-    elite:       { name:'Elite Pro',   sandwich:true,  motor:true,  straps:true  },
-    competition: { name:'Competition', sandwich:false, motor:true,  straps:true  },
-    sport:       { name:'Sport',       sandwich:false, motor:false, straps:false }
+    elite:       { name:'Elite Pro',   sandwich:true,  motor:true  },
+    competition: { name:'Competition', sandwich:false, motor:true  },
+    sport:       { name:'Sport',       sandwich:false, motor:false }
   };
   const STYLES = { piloto:'Piloto', custom:'100% Custom' };
 
   const state = {
-    variant:'4x4', model:'elite', sandwich:true, motor:true, straps:true,
-    main:0xE60000, accent:0x1a1a1a, strap:0xB8C2CC, sand:0x1a1a1a, thread:0xF2F2F2,
+    variant:'4x4', model:'elite', sandwich:true, motor:true,
+    // main/accent = capa de arriba; mainBot/accentBot = capa de abajo (solo con sándwich)
+    main:0xE60000, mainBot:0xE60000, accent:0x1a1a1a, accentBot:0x1a1a1a, thread:0xF2F2F2,
     patch:true, pBase:0x1a1a1a, pBrush:0xE60000, pDrip:0x3A3A3A, style:'piloto',
     nombre:'NOMBRE', numero:'31', marca:'MARCA', modelo:'450R'
   };
@@ -135,8 +137,8 @@
   }
   const mainMat = strapMaterial(state.main);
   const accentMat = strapMaterial(state.accent);
-  const strapMat = strapMaterial(state.strap);
-  const sandMat = strapMaterial(state.sand);
+  const mainBotMat = strapMaterial(state.mainBot);
+  const accentBotMat = strapMaterial(state.accentBot);
   const threadMat = new THREE.MeshStandardMaterial({ color: linColor(state.thread), roughness: 0.55 });
 
   /* ---------------- costura industrial (caja con X) ---------------- */
@@ -335,7 +337,7 @@
     g.translate(0, 0, -depth / 2);
     return g;
   }
-  const plasticMat = new THREE.MeshStandardMaterial({ color: linColor(0x161616), roughness: 0.55, metalness: 0.05 });
+  const plasticMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.42, metalness: 0.05 });
 
   // Perfil de altura: la tira sube (+) o baja (−) en cada cruce, plana sobre el cruce
   function makeProfile(knots, amp, h, decay, slopeA, slopeB){
@@ -593,8 +595,6 @@
 
   /* ---------------- construcción de la malla ---------------- */
   const SW = 0.46, TH = 0.045, EXT = 1.35, GAP = 0.006;
-  const SWI = SW * 0.74;    // cintas de ajuste: más angostas que las tiras
-  const EXT_S = EXT + 0.2;  // y salen un poco más que ellas
   let fitHalf = { w: 3, h: 3 };
   let patchMesh = null;
 
@@ -640,18 +640,6 @@
     return { zEnd, R };
   }
 
-  // Hebilla plástica: aro rectangular que abraza la cinta doblada
-  function addBuckle(st, dir, endP, width, L1, zEnd, R){
-    const geo = makeKeeper(width + 0.03, 2 * R + TH + 0.024, 0.034, 0.15);
-    const A = st.axis === 'v' ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
-    const Z = new THREE.Vector3(0, 0, 1);
-    const m4 = new THREE.Matrix4().makeBasis(A, Z, new THREE.Vector3().crossVectors(A, Z));
-    const p = endP + dir * L1 * 0.45;
-    m4.setPosition(st.axis === 'v' ? st.fixed : p, st.axis === 'v' ? p : st.fixed, zEnd - R);
-    geo.applyMatrix4(m4);
-    addMesh(geo, plasticMat);
-  }
-
   function buildNet(){
     clearNet();
     const [nV, nH] = VARIANTS[state.variant];
@@ -660,23 +648,26 @@
     const xs = Array.from({ length: nV }, (_, i) => -bw / 2 + i * s);
     const ys = Array.from({ length: nH }, (_, j) => -bh / 2 + j * s);
     const sand = state.sandwich, motor = state.motor;
-    // Cintas de ajuste: una entre cada par de tiras
+    // Cuadrícula llena: entre cada par de tiras de la variante va una tira interna
     const mids = a => a.slice(1).map((v, i) => (v + a[i]) / 2);
-    const xi = state.straps ? mids(xs) : [], yi = state.straps ? mids(ys) : [];
-    const allX = xs.concat(xi).sort((a, b) => a - b), allY = ys.concat(yi).sort((a, b) => a - b);
+    const allX = xs.concat(mids(xs)).sort((a, b) => a - b);
+    const allY = ys.concat(mids(ys)).sort((a, b) => a - b);
+    const mainX = new Set(xs), mainY = new Set(ys);
     const t = TH;
     const amp = sand ? t * 1.3 + GAP : t * 0.6 + 0.004;
-    const h = SW * 0.55, decay = 0.32;
-    const tS = t * 1.3, layer2 = t * 0.5 + tS * 0.5 + GAP;   // capa sándwich: más gruesa que la tira
+    const h = SW * 0.51, decay = 0.32;
+    const layer2 = t + GAP;
     const edgeStitches = [];
 
+    // Tejido alterno: en cada cruce una tira va arriba y la otra abajo (como damero),
+    // así con la cuadrícula llena se ven los colores de verticales y horizontales
+    const over = (i, j) => (i + j) % 2 === 0 ? 1 : -1;
     const rnd = rng(31 + nV * 13 + nH * 7);
     const straps = [];
-    const vKnots = allY.map(q => ({ q, s: 1 })), hKnots = allX.map(q => ({ q, s: -1 }));
-    xs.forEach(x => straps.push({ axis:'v', fixed:x, mat: mainMat, knots: vKnots }));
-    ys.forEach(y => straps.push({ axis:'h', fixed:y, mat: accentMat, knots: hKnots }));
-    xi.forEach(x => straps.push({ axis:'v', fixed:x, mat: strapMat, knots: vKnots, cinta: true }));
-    yi.forEach(y => straps.push({ axis:'h', fixed:y, mat: strapMat, knots: hKnots, cinta: true }));
+    allX.forEach((x, i) => straps.push({ axis:'v', fixed:x, mat: mainMat, bot: mainBotMat, main: mainX.has(x),
+      knots: allY.map((q, j) => ({ q, s: over(i, j) })) }));
+    allY.forEach((y, j) => straps.push({ axis:'h', fixed:y, mat: accentMat, bot: accentBotMat, main: mainY.has(y),
+      knots: allX.map((q, i) => ({ q, s: -over(i, j) })) }));
 
     straps.forEach(st => {
       const kn = st.knots, first = kn[0].q, last = kn[kn.length - 1].q;
@@ -684,30 +675,21 @@
       const slopeB = Math.tan((4 + rnd() * 6) * Math.PI / 180);
       const ao = makeAO(kn, SW);
 
-      // Cinta de ajuste: las verticales nacen en la tira de abajo y salen por arriba,
-      // las horizontales salen por los dos lados. Cada salida lleva hebilla.
-      if (st.cinta){
-        const onlyTop = st.axis === 'v';
-        const from = onlyTop ? first - h - 0.02 : first - EXT_S, to = last + EXT_S;
-        const zf = makeProfile(kn, amp, h, decay, onlyTop ? 0 : slopeA, slopeB);
-        addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to, width: SWI, thick: t, zf, ao }), st.mat);
-        (onlyTop ? [1] : [-1, 1]).forEach(dir => {
-          const endP = dir > 0 ? to : from, L1 = SWI * 0.9;
-          const tail = addTail(st, dir, endP, zf, SWI, L1, SWI * 1.15, false);
-          addBuckle(st, dir, endP, SWI, L1, tail.zEnd, tail.R);
-        });
-        return;
-      }
-
-      const from = first - EXT, to = last + EXT;
-      const zf = makeProfile(kn, amp, h, decay, slopeA, slopeB);
+      // Qué puntas salen largas: las tiras de la variante siempre; las internas solo con
+      // refuerzo al motor (verticales por arriba, horizontales por los dos lados).
+      // Las que no salen terminan justo en la orilla de la red.
+      const longA = st.main || (motor && st.axis === 'h');
+      const longB = st.main || motor;
+      const from = longA ? first - EXT : first - h - 0.02;
+      const to = longB ? last + EXT : last + h + 0.02;
+      const zf = makeProfile(kn, amp, h, decay, longA ? slopeA : 0, longB ? slopeB : 0);
       addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to, width: SW, thick: t, zf, ao }), st.mat);
 
-      // Refuerzo sándwich: segunda capa (con su propio color) bajo el cuerpo + costura de orilla.
-      // Es un poco más ancha para que el grosor se vea desde el frente.
+      // Refuerzo sándwich: segunda tira del mismo ancho pegada por debajo, con su propio color
+      // (capa de arriba = la del lado del parche, capa de abajo = la de atrás)
       if (sand){
-        addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from: first - h * 1.25, to: last + h * 1.25,
-          width: SW * 1.2, thick: tS, zf, offset: layer2, ao: p => ao(p) * 0.9 }), sandMat);
+        addMesh(buildRibbon({ axis: st.axis, fixed: st.fixed, from, to,
+          width: SW, thick: t, zf, offset: layer2, ao }), st.bot);
         for (let p = first - h; p <= last + h; p += 0.075){
           const underHere = kn.some(k => k.s < 0 && Math.abs(p - k.q) < h * 1.15);
           if (underHere) continue;
@@ -715,8 +697,9 @@
         }
       }
 
-      // Tiras salidas: refuerzo al motor y rabito doblado
-      [-1, 1].forEach(dir => {
+      // Tiras largas: refuerzo al motor y rabito doblado
+      [[-1, longA], [1, longB]].forEach(([dir, isLong]) => {
+        if (!isLong) return;
         const endP = dir > 0 ? to : from;
         const bodyEdge = dir > 0 ? last + h + decay : first - h - decay;
 
@@ -732,13 +715,10 @@
     });
 
     // Costura caja-X en cada cruce (frente de la tira de arriba y reverso de la de abajo)
-    const geoCache = {};
-    const crossGeo = (a, b) => geoCache[a + ':' + b] || (geoCache[a + ':' + b] = new THREE.PlaneGeometry(a * 0.88, b * 0.88));
-    const mainX = new Set(xs), mainY = new Set(ys);
+    const cGeo = new THREE.PlaneGeometry(SW * 0.88, SW * 0.88);
     const frontZ = amp + t * 0.5 + 0.0015;
+    const backZ = -amp - t * 0.5 - (sand ? layer2 : 0) - 0.0015;
     allX.forEach(x => allY.forEach(y => {
-      const cGeo = crossGeo(mainX.has(x) ? SW : SWI, mainY.has(y) ? SW : SWI);
-      const backZ = -amp - (sand && mainY.has(y) ? layer2 + tS * 0.5 : t * 0.5) - 0.0015;
       const f = new THREE.Mesh(cGeo, crossMat); f.position.set(x, y, frontZ);
       const b = new THREE.Mesh(cGeo, crossMat); b.position.set(x, y, backZ); b.rotation.y = Math.PI;
       f.renderOrder = b.renderOrder = 2;
@@ -851,7 +831,7 @@
     const b = document.getElementById('cfgBadge');
     if (b) b.textContent = state.variant.replace('x', '×') + ' · ' + currentModelName();
   }
-  const sameAsModel = m => m.sandwich === state.sandwich && m.motor === state.motor && m.straps === state.straps;
+  const sameAsModel = m => m.sandwich === state.sandwich && m.motor === state.motor;
   function currentModelName(){
     const m = MODELS[state.model];
     if (m && sameAsModel(m)) return m.name;
@@ -910,38 +890,32 @@
   const modelLabels = {}; Object.entries(MODELS).forEach(([k, m]) => modelLabels[k] = m.name);
   const sandBox = document.getElementById('cfgSandwich');
   const motorBox = document.getElementById('cfgMotor');
-  const strapsBox = document.getElementById('cfgStraps');
-  const strapRow = document.getElementById('cfgStrapRow');
-  const sandRow = document.getElementById('cfgSandRow');
   function syncToggles(){
     if (sandBox) sandBox.checked = state.sandwich;
     if (motorBox) motorBox.checked = state.motor;
-    if (strapsBox) strapsBox.checked = state.straps;
-    // los colores de cintas y de capa sándwich solo aparecen si esa parte existe
-    if (strapRow) strapRow.hidden = !state.straps;
-    if (sandRow) sandRow.hidden = !state.sandwich;
+    // con sándwich cada tira tiene capa de arriba y capa de abajo, cada una con su color
+    document.querySelectorAll('[data-sand-only]').forEach(el => { el.hidden = !state.sandwich; });
   }
   segment('cfgModel', modelLabels, state.model, k => {
     const m = MODELS[k];
-    state.model = k; state.sandwich = m.sandwich; state.motor = m.motor; state.straps = m.straps;
+    state.model = k; state.sandwich = m.sandwich; state.motor = m.motor;
     syncToggles(); buildNet();
   });
   function onToggle(){
     state.sandwich = !!(sandBox && sandBox.checked);
     state.motor = !!(motorBox && motorBox.checked);
-    state.straps = !!(strapsBox && strapsBox.checked);
     const match = Object.entries(MODELS).find(([, m]) => sameAsModel(m));
     state.model = match ? match[0] : state.model;
     setSegActive('cfgModel', match ? match[0] : '');
     syncToggles(); buildNet();
   }
-  [sandBox, motorBox, strapsBox].forEach(el => { if (el) el.addEventListener('change', onToggle); });
-  syncToggles();
+  [sandBox, motorBox].forEach(el => { if (el) el.addEventListener('change', onToggle); });
 
   swatches('cfgMainSwatches', state.main, hex => { state.main = hex; mainMat.color.copy(linColor(hex)); });
+  swatches('cfgMainBotSwatches', state.mainBot, hex => { state.mainBot = hex; mainBotMat.color.copy(linColor(hex)); });
   swatches('cfgAccentSwatches', state.accent, hex => { state.accent = hex; accentMat.color.copy(linColor(hex)); });
-  swatches('cfgStrapSwatches', state.strap, hex => { state.strap = hex; strapMat.color.copy(linColor(hex)); });
-  swatches('cfgSandSwatches', state.sand, hex => { state.sand = hex; sandMat.color.copy(linColor(hex)); });
+  swatches('cfgAccentBotSwatches', state.accentBot, hex => { state.accentBot = hex; accentBotMat.color.copy(linColor(hex)); });
+  syncToggles();
   swatches('cfgThreadSwatches', state.thread, hex => {
     state.thread = hex; threadMat.color.copy(linColor(hex));
     paintStitches(); crossMat.map.needsUpdate = true; denseMat.map.needsUpdate = true;
@@ -1042,19 +1016,19 @@
       a.download = 'mi-racing-net.png';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
 
-      const refuerzos = [state.sandwich && 'sándwich', state.motor && 'al motor'].filter(Boolean).join(' + ') || 'sin refuerzos';
+      const refuerzos = [state.sandwich && 'sándwich', state.motor && 'al motor'].filter(Boolean).join(' + ');
       const textos = state.style === 'custom' ? '100% Custom'
         : [state.nombre, state.numero, state.marca, state.modelo].map(v => v.trim().toUpperCase()).filter(Boolean).join(' / ');
-      const colores = ['verticales ' + colorName(state.main), 'horizontales ' + colorName(state.accent)];
-      if (state.straps) colores.push('cintas ' + colorName(state.strap));
-      if (state.sandwich) colores.push('capa sándwich ' + colorName(state.sand));
-      colores.push('hilo ' + colorName(state.thread));
+      const capas = (top, bot) => state.sandwich
+        ? 'arriba ' + colorName(top) + ' / abajo ' + colorName(bot) : colorName(top);
+      const colores = ['verticales ' + capas(state.main, state.mainBot), 'horizontales ' + capas(state.accent, state.accentBot),
+        'hilo ' + colorName(state.thread)];
       const parche = !state.patch ? 'sin parche'
         : 'fondo ' + colorName(state.pBase) + ', brochazos ' + colorName(state.pBrush) + ', manchas ' + colorName(state.pDrip) + ' — ' + textos;
       const msg = [
         'Hola, quiero cotizar esta Racing Net:',
         '• Variante: ' + state.variant.replace('x', '×'),
-        '• Modelo: ' + currentModelName() + ' (refuerzo ' + refuerzos + (state.straps ? ', cintas con hebillas' : '') + ')',
+        '• Modelo: ' + currentModelName() + (refuerzos ? ' (refuerzo ' + refuerzos + ')' : ' (sin refuerzos)'),
         '• Colores: ' + colores.join(', '),
         '• Parche: ' + parche,
         'Adjunto la imagen de mi diseño.'

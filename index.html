@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=Permanent+Marker&family=Rye&family=Alfa+Slab+One&family=Ultra&display=swap" rel="stylesheet">
 <!-- Al cambiar CSS o JS, subir el número de ?v= para que los navegadores no usen la versión guardada -->
-<link rel="stylesheet" href="css/estilos.css?v=3">
+<link rel="stylesheet" href="css/estilos.css?v=4">
 </head>
 <body>
 
@@ -238,17 +238,16 @@
           <div class="cfg-label">2 · Modelo y refuerzos</div>
           <div class="cfg-seg" id="cfgModel"></div>
           <div class="cfg-toggles">
-            <label class="cfg-toggle"><input type="checkbox" id="cfgStraps"><span>Cintas de ajuste <em>con hebillas</em></span></label>
             <label class="cfg-toggle"><input type="checkbox" id="cfgSandwich"><span>Refuerzo sándwich <em>doble capa</em></span></label>
-            <label class="cfg-toggle"><input type="checkbox" id="cfgMotor"><span>Refuerzo al motor <em>anclajes</em></span></label>
+            <label class="cfg-toggle"><input type="checkbox" id="cfgMotor"><span>Refuerzo al motor <em>tiras largas</em></span></label>
           </div>
         </div>
         <div class="cfg-group">
           <div class="cfg-label">3 · Colores</div>
-          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras verticales</span><div class="cfg-swatches" id="cfgMainSwatches"></div></div>
-          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras horizontales</span><div class="cfg-swatches" id="cfgAccentSwatches"></div></div>
-          <div class="cfg-color-row" id="cfgStrapRow"><span class="cfg-mini-label">Cintas de ajuste</span><div class="cfg-swatches" id="cfgStrapSwatches"></div></div>
-          <div class="cfg-color-row" id="cfgSandRow"><span class="cfg-mini-label">Capa sándwich (grosor)</span><div class="cfg-swatches" id="cfgSandSwatches"></div></div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras verticales<span data-sand-only> · capa de arriba</span></span><div class="cfg-swatches" id="cfgMainSwatches"></div></div>
+          <div class="cfg-color-row" data-sand-only><span class="cfg-mini-label">Tiras verticales · capa de abajo</span><div class="cfg-swatches" id="cfgMainBotSwatches"></div></div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras horizontales<span data-sand-only> · capa de arriba</span></span><div class="cfg-swatches" id="cfgAccentSwatches"></div></div>
+          <div class="cfg-color-row" data-sand-only><span class="cfg-mini-label">Tiras horizontales · capa de abajo</span><div class="cfg-swatches" id="cfgAccentBotSwatches"></div></div>
           <div class="cfg-color-row"><span class="cfg-mini-label">Hilo de costura</span><div class="cfg-swatches" id="cfgThreadSwatches"></div></div>
         </div>
         <div class="cfg-group">
@@ -279,7 +278,7 @@
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/configurador.js?v=3"></script>
+<script src="js/configurador.js?v=4"></script>
 
 
 <div class="marquee">
@@ -372,7 +371,7 @@
   </div>
 </footer>
 
-<script src="js/sitio.js?v=3"></script>
+<script src="js/sitio.js?v=4"></script>
 
 </body>
 </html>

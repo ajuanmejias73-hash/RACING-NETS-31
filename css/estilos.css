@@ -495,19 +495,16 @@
     text-transform:uppercase; letter-spacing:1px; color:var(--c-white);
   }
   .model-cat-head p{margin-left:auto; color:var(--c-gray-3); font-size:14.5px;}
-  .model-cat-duo{display:grid; grid-template-columns:1fr 1fr; gap:56px 26px; margin-top:64px;}
+  /* UTV y automovilismo: misma cuadrícula de 3 columnas que cuadraciclos, así las tarjetas miden igual */
+  .model-cat-duo{display:grid; grid-template-columns:repeat(3, 1fr); gap:56px 26px; margin-top:64px;}
   .model-cat-duo .model-cat{display:flex; flex-direction:column;}
   .model-cat-duo .model-card{flex:1;}
-  .model-card-wide{flex-direction:row;}
-  .model-card-wide .model-thumb{aspect-ratio:auto; width:42%; flex-shrink:0; border-radius:20px 0 0 20px;}
-  @media (max-width: 1080px){ .model-cat-duo{grid-template-columns:1fr;} }
+  @media (max-width: 900px){ .model-cat-duo{grid-template-columns:1fr;} }
   @media (max-width: 640px){
     .model-cat-duo{margin-top:48px; row-gap:48px;}
     .model-cat-head{margin-bottom:20px;}
     .model-cat-head h3{font-size:24px;}
     .model-cat-head p{margin-left:0; flex-basis:100%;}
-    .model-card-wide{flex-direction:column;}
-    .model-card-wide .model-thumb{width:auto; aspect-ratio:16/11; border-radius:20px 20px 0 0;}
   }
 
   /* -------- technology / specs -------- */

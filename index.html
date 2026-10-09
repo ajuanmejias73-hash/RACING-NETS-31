@@ -47,7 +47,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=Permanent+Marker&family=Rye&family=Alfa+Slab+One&family=Ultra&display=swap" rel="stylesheet">
 <!-- Al cambiar CSS o JS, subir el número de ?v= para que los navegadores no usen la versión guardada -->
-<link rel="stylesheet" href="css/estilos.css?v=8">
+<link rel="stylesheet" href="css/estilos.css?v=9">
 </head>
 <body>
 
@@ -317,8 +317,21 @@
   </div>
 </section>
 
+<!-- Cotizar en celular: primero se guarda la imagen y después se abre WhatsApp (dos toques),
+     para que el aviso de descarga no se pierda al saltar a WhatsApp -->
+<div class="cfg-sheet" id="cfgSheet" hidden>
+  <div class="cfg-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="cfgSheetTitle">
+    <button class="cfg-sheet-close" type="button" id="cfgSheetClose" aria-label="Cerrar">&times;</button>
+    <div class="cfg-sheet-title" id="cfgSheetTitle">Tu diseño está listo</div>
+    <img class="cfg-sheet-img" id="cfgSheetImg" alt="Imagen de tu diseño">
+    <button class="btn btn-red cfg-sheet-step" type="button" id="cfgSheetSave"><span class="cfg-sheet-num">1</span><span class="cfg-sheet-lbl">Guardar imagen</span></button>
+    <a class="btn cfg-sheet-step cfg-sheet-wa" id="cfgSheetWa" href="https://wa.me/50683196548" target="_blank" rel="noopener"><span class="cfg-sheet-num">2</span><span class="cfg-sheet-lbl">Abrir WhatsApp</span></a>
+    <div class="cfg-sheet-note">Guarda la imagen y después adjúntala en el chat de WhatsApp. En iPhone también puedes mantener presionada la imagen y elegir «Guardar en Fotos».</div>
+  </div>
+</div>
+
 <script src="js/vendor/three.min.js"></script>
-<script src="js/configurador.js?v=8"></script>
+<script src="js/configurador.js?v=9"></script>
 
 
 <div class="marquee">
@@ -411,7 +424,7 @@
   </div>
 </footer>
 
-<script src="js/sitio.js?v=8"></script>
+<script src="js/sitio.js?v=9"></script>
 
 </body>
 </html>

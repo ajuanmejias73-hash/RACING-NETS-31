@@ -1042,11 +1042,6 @@
       camera.aspect = prevAspect; camera.updateProjectionMatrix();
       resize();
 
-      const a = document.createElement('a');
-      a.href = out.toDataURL('image/png');
-      a.download = 'mi-racing-net.png';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-
       const refuerzos = [state.sandwich && 'sándwich', state.motor && 'al motor'].filter(Boolean).join(' + ');
       const textos = state.style === 'custom' ? '100% Custom'
         : [state.nombre, state.numero, state.marca, state.modelo].map(v => v.trim().toUpperCase()).filter(Boolean).join(' / ');
@@ -1064,8 +1059,78 @@
         '• Parche: ' + parche,
         'Adjunto la imagen de mi diseño.'
       ].join('\n');
-      window.open('https://wa.me/50683196548?text=' + encodeURIComponent(msg), '_blank');
+      const waUrl = 'https://wa.me/50683196548?text=' + encodeURIComponent(msg);
+
+      // Celular: dos pasos (guardar imagen, luego WhatsApp) para no perder el aviso de descarga
+      if (IS_MOBILE){
+        out.toBlob(blob => openQuoteSheet(blob, waUrl), 'image/jpeg', 0.9);
+        return;
+      }
+      // Computadora: descarga y abre WhatsApp de una vez
+      const a = document.createElement('a');
+      a.href = out.toDataURL('image/png');
+      a.download = 'mi-racing-net.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      window.open(waUrl, '_blank');
     });
+  }
+
+  /* ---------------- cotizar en celular ---------------- */
+  const UA = navigator.userAgent;
+  const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
+  const IS_MOBILE = IS_IOS || /Android|Mobi/i.test(UA);
+  const sheet = document.getElementById('cfgSheet');
+  let sheetUrl = null;
+
+  function downloadBlob(blob, name){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  }
+  function closeQuoteSheet(){
+    if (!sheet) return;
+    sheet.hidden = true;
+    document.body.style.overflow = '';
+  }
+  function openQuoteSheet(blob, waUrl){
+    // Sin ventana disponible: comportamiento de siempre
+    if (!sheet){ downloadBlob(blob, 'mi-racing-net.jpg'); window.open(waUrl, '_blank'); return; }
+    const file = new File([blob], 'mi-racing-net.jpg', { type: 'image/jpeg' });
+    const img = document.getElementById('cfgSheetImg');
+    const save = document.getElementById('cfgSheetSave');
+    const wa = document.getElementById('cfgSheetWa');
+    if (sheetUrl) URL.revokeObjectURL(sheetUrl);
+    sheetUrl = URL.createObjectURL(blob);
+    img.src = sheetUrl;
+    wa.href = waUrl;
+    save.classList.remove('is-done');
+    save.querySelector('.cfg-sheet-lbl').textContent = 'Guardar imagen';
+    const markSaved = () => {
+      save.classList.add('is-done');
+      save.querySelector('.cfg-sheet-lbl').textContent = 'Imagen guardada';
+    };
+    save.onclick = () => {
+      // iPhone: el menú de compartir trae "Guardar imagen" (va directo a Fotos)
+      if (IS_IOS && navigator.canShare && navigator.canShare({ files: [file] })){
+        navigator.share({ files: [file] }).then(markSaved).catch(err => {
+          if (err && err.name === 'AbortError') return;
+          downloadBlob(blob, file.name); markSaved();
+        });
+      } else {
+        downloadBlob(blob, file.name); markSaved();
+      }
+    };
+    wa.onclick = () => setTimeout(closeQuoteSheet, 400);
+    sheet.hidden = false;
+    document.body.style.overflow = 'hidden';
+    save.focus();
+  }
+  if (sheet){
+    document.getElementById('cfgSheetClose').addEventListener('click', closeQuoteSheet);
+    sheet.addEventListener('click', e => { if (e.target === sheet) closeQuoteSheet(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeQuoteSheet(); });
   }
 
   /* ---------------- arranque ---------------- */

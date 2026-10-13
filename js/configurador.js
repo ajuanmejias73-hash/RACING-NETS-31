@@ -57,6 +57,15 @@
     nombre:'NOMBRE', numero:'31', marca:'MARCA', modelo:'450R'
   };
 
+  // Modelo elegido desde el inicio: configurador.html?modelo=elite-pro | competition | sport
+  const MODEL_PARAM = { 'elite-pro':'elite', elite:'elite', competition:'competition', sport:'sport' };
+  const pedido = MODEL_PARAM[(new URLSearchParams(location.search).get('modelo') || '').toLowerCase()];
+  if (pedido){
+    state.model = pedido;
+    state.sandwich = MODELS[pedido].sandwich;
+    state.motor = MODELS[pedido].motor;
+  }
+
   /* ---------------- escena ---------------- */
   let W = mount.clientWidth || 600, H = mount.clientHeight || 480;
   const scene = new THREE.Scene();

@@ -6,6 +6,7 @@
     font-display: swap;
   }
   :root{
+    --header-h: 85px;
     --c-black: #1A1A1A;
     --c-bg: #FEFCF6;
     --c-bg-alt: #F1EAE7;
@@ -253,7 +254,7 @@
   .tag.pink{color:var(--c-pink);} .tag.pink::before{background:var(--c-pink);}
   .tag.green{color:var(--c-green);} .tag.green::before{background:var(--c-green);}
   .tag.orange{color:var(--c-orange);} .tag.orange::before{background:var(--c-orange);}
-  h2{
+  h2, .cfg-title{
     font-family:'BPImperial', var(--font-display); font-weight:400; font-synthesis:none; text-transform:uppercase;
     font-size:clamp(34px, 4.5vw, 54px); color:var(--c-white); line-height:1.25;
     padding-left:4px; letter-spacing:2px;
@@ -340,13 +341,21 @@
   /* -------- configurador 3D -------- */
   .configurator{background:var(--c-panel);}
   .cfg-layout{display:grid; grid-template-columns:1.35fr 1fr; gap:44px; align-items:start;}
-  .cfg-stage{position:sticky; top:96px;}
+  /* El visor se queda en pantalla (debajo del encabezado fijo) mientras los controles se desplazan */
+  .cfg-stage{position:sticky; top:calc(var(--header-h) + 18px);}
+  .page-config .configurator{padding-top:calc(var(--header-h) + 18px);}
+  .cfg-head{margin-bottom:0;}
+  .cfg-head p{margin-top:10px; font-size:15px;}
+  .cfg-head .cfg-title{font-size:clamp(30px, 3.4vw, 44px);}
   .cfg-canvas-wrap{
     position:relative; border-radius:16px; overflow:hidden;
     background:radial-gradient(circle at 50% 35%, #34322f, #121212 75%);
     border:1px solid var(--c-gray-4);
   }
-  .cfg-canvas-wrap #cfgCanvas{ display:block; width:100%; height:540px; cursor:grab; touch-action:pan-y; }
+  .cfg-canvas-wrap #cfgCanvas{
+    display:block; width:100%; cursor:grab; touch-action:pan-y;
+    height:min(600px, calc(100vh - var(--header-h) - 48px)); min-height:340px;
+  }
   .cfg-canvas-wrap #cfgCanvas:active{ cursor:grabbing; }
   .cfg-canvas-wrap canvas{ display:block; }
   .cfg-hint{
@@ -448,12 +457,23 @@
   .cfg-sheet-wa .cfg-sheet-num{background:rgba(0,0,0,0.15);}
   .cfg-sheet-note{font-size:12.5px; color:var(--c-gray-3); line-height:1.5;}
   @media (max-width: 900px){
-    .cfg-layout{grid-template-columns:1fr;}
-    .cfg-stage{position:static;}
-    .cfg-canvas-wrap #cfgCanvas{ height:400px; }
+    /* Celular y tablet: el visor queda pegado arriba (~45% de la pantalla) y los controles pasan por
+       debajo. Bloque normal en vez de cuadrícula: dentro de una cuadrícula el visor no puede quedarse
+       pegado más allá de su propia fila. */
+    .cfg-layout{display:block;}
+    /* La franja del visor cubre de borde a borde para que los controles no se asomen por los costados */
+    .cfg-stage{
+      position:sticky; top:0; z-index:20; background:var(--c-panel);
+      margin:-8px -28px 0; padding:8px 28px 12px; box-shadow:0 10px 14px -12px rgba(0,0,0,0.35);
+    }
+    .cfg-canvas-wrap #cfgCanvas{ height:45vh; height:45svh; min-height:240px; }
+    .cfg-controls{margin-top:14px;}
+    /* En el configurador el encabezado deja de ser fijo para no tapar el visor pegado arriba */
+    .page-config header{position:relative;}
+    .page-config .configurator{padding-top:32px;}
   }
   @media (max-width: 640px){
-    .cfg-canvas-wrap #cfgCanvas{ height:340px !important; }
+    .cfg-stage{margin:-8px -18px 0; padding:8px 18px 12px;}
     .cfg-patch{grid-template-columns:1fr; gap:12px;}
     #cfgPatchPreview{width:120px; height:120px;}
     .cfg-swatches{gap:5px !important;}
@@ -461,6 +481,39 @@
     .cfg-seg button{padding:8px 13px; font-size:13px;}
     .cfg-controls > .btn{align-self:stretch; justify-content:center;}
   }
+  /* -------- llamado al configurador (botón principal del sitio) -------- */
+  .btn-xl{padding:16px 28px; font-size:15px; letter-spacing:1.5px;}
+  .btn-on-dark{border-color:var(--c-onDark); color:var(--c-onDark);}
+  .btn-on-dark:hover{border-color:var(--c-yellow); color:var(--c-yellow);}
+  .nav-links a[aria-current="page"]{opacity:1; color:var(--c-yellow);}
+  .model-actions{display:flex; flex-wrap:wrap; gap:10px;}
+  .cfg-invite{background:var(--c-panel);}
+  .cfg-invite-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:56px; align-items:center;}
+  .cfg-invite-media{
+    position:relative; display:block; border-radius:20px; overflow:hidden; background:#151515;
+    box-shadow:0 22px 50px rgba(0,0,0,0.3); transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .cfg-invite-media:hover{transform:translateY(-6px);}
+  .cfg-invite-media img{display:block; width:100%; height:auto;}
+  .cfg-invite-badge{
+    position:absolute; left:16px; bottom:16px; background:rgba(0,0,0,0.6); color:#fff;
+    font-family:var(--font-osw); font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    padding:8px 14px; border-radius:999px;
+  }
+  .cfg-invite-copy p{color:var(--c-gray-3); font-size:16px; line-height:1.7; margin:18px 0 22px; max-width:520px;}
+  .cfg-invite-steps{list-style:none; padding:0; margin:0 0 28px; display:flex; flex-wrap:wrap; gap:10px;}
+  .cfg-invite-steps li{
+    display:flex; align-items:center; gap:10px; background:var(--c-bg); border:1px solid var(--c-gray-4);
+    border-radius:999px; padding:7px 16px 7px 7px; font-family:var(--font-osw); font-size:13px;
+    letter-spacing:1px; text-transform:uppercase; color:var(--c-white);
+  }
+  .cfg-invite-steps b{
+    display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+    border-radius:50%; background:var(--c-red); color:#fff; font-size:13px;
+  }
+  @media (max-width: 900px){ .cfg-invite-grid{grid-template-columns:1fr; gap:30px;} }
+  @media (max-width: 640px){ .cfg-invite-copy .btn-xl{width:100%; justify-content:center;} }
+
   .model-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:26px;}
   .model-card{
     background:var(--c-panel); border:1px solid var(--c-gray-4); border-radius:20px; overflow:hidden;
@@ -723,7 +776,7 @@
     .hero-kicker{ font-size:12px; letter-spacing:1.6px; line-height:1.5; }
     .chrome-text, .chrome-text .ltr{ -webkit-text-stroke: 1px rgba(0,0,0,0.6); }
     .hero h1 .hl-red, .hero h1 .hl-red .ltr{ -webkit-text-stroke: 1px rgba(0,0,0,0.6); }
-    h2{ font-size:clamp(26px, 7.5vw, 54px); letter-spacing:1px; line-height:1.3; }
+    h2, .cfg-title{ font-size:clamp(26px, 7.5vw, 54px); letter-spacing:1px; line-height:1.3; }
     .section-head{ margin-bottom:38px; }
     .section-head p{ font-size:15px; }
     .hero-subtitle{ font-size:clamp(18px, 5.2vw, 36px); }
@@ -761,8 +814,6 @@
     .athlete-facts div b{ font-size:30px; margin-bottom:0; min-width:118px; flex-shrink:0; }
     .athlete-facts > div > span{ font-size:13px; }
     .ig-inner{ flex-direction:column; align-items:flex-start; }
-    .cfg-layout{ gap:26px; }
-    .cfg-canvas-wrap #cfgCanvas{ height:320px; }
     .cfg-hint{ bottom:8px; font-size:10px; padding:6px 12px; }
     .footer-grid{ gap:34px; }
     .footer-bottom{ flex-direction:column; gap:8px; }

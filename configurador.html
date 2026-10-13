@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurador 3D | Diseña tu Racing Net</title>
+<meta name="description" content="Diseña tu Racing Net en 3D: elige modelo, colores y parche, gírala en 360° y cotízala por WhatsApp con la imagen de tu diseño.">
+<!-- Dirección pública de la página. Al tener dominio propio, cambiarla aquí (canonical, og:url,
+     og:image) y en sitemap.xml -->
+<link rel="canonical" href="https://ajuanmejias73-hash.github.io/RACING-NETS-31/configurador.html">
+<!-- Vista previa al compartir el link (WhatsApp, Instagram, Facebook) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Racing Nets">
+<meta property="og:locale" content="es_CR">
+<meta property="og:title" content="Diseña tu Racing Net en 3D">
+<meta property="og:description" content="Elige modelo, colores y parche, gírala en 360° y cotízala por WhatsApp.">
+<meta property="og:url" content="https://ajuanmejias73-hash.github.io/RACING-NETS-31/configurador.html">
+<meta property="og:image" content="https://ajuanmejias73-hash.github.io/RACING-NETS-31/img/compartir.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="img/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=Permanent+Marker&family=Rye&family=Alfa+Slab+One&family=Ultra&display=swap" rel="stylesheet">
+<!-- Al cambiar CSS o JS, subir el número de ?v= para que los navegadores no usen la versión guardada -->
+<link rel="stylesheet" href="css/estilos.css?v=10">
+</head>
+<body class="page-config">
+
+<header>
+  <div class="nav">
+    <a class="logo-group" href="index.html">
+      <img class="logo" src="img/foto-01.webp" alt="Racing Nets">
+      <span class="logo-text">RACING<span class="dot">&bull;</span>NETS</span>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html#inicio">Inicio</a>
+      <a href="index.html#producto">Racing Nets</a>
+      <a href="index.html#modelos">Modelos</a>
+      <a href="configurador.html" aria-current="page">Configurador 3D</a>
+      <a href="index.html#historia">Historia</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-outline btn-sm" href="https://www.instagram.com/racing_nets" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn btn-red btn-sm" href="configurador.html">Diseña la tuya</a>
+    </div>
+  </div>
+</header>
+
+<section class="configurator" id="configurador">
+  <div class="wrap">
+    <div class="cfg-layout">
+      <div class="cfg-stage">
+        <div class="cfg-canvas-wrap">
+          <div id="cfgCanvas"></div>
+          <div class="cfg-badge" id="cfgBadge">4×4 · Elite Pro</div>
+          <div class="cfg-hint">Arrastra para girar</div>
+        </div>
+      </div>
+      <div class="cfg-controls">
+        <!-- El título va en la columna de controles para que el visor arranque pegado al encabezado -->
+        <div class="section-head cfg-head">
+          <div class="tag green">Configurador 3D</div>
+          <h1 class="cfg-title letter-fx">Diseña tu Racing Net en 3D</h1>
+          <p>Elige la variante, el modelo, los colores y diseña tu parche. Arrastra para girar y usa la rueda o pellizca para acercar.</p>
+        </div>
+        <div class="cfg-group">
+          <div class="cfg-label">1 · Variante de tiras <span class="cfg-sub">verticales × horizontales</span></div>
+          <div class="cfg-seg" id="cfgVariant"></div>
+        </div>
+        <div class="cfg-group">
+          <div class="cfg-label">2 · Modelo y refuerzos</div>
+          <div class="cfg-seg" id="cfgModel"></div>
+          <div class="cfg-toggles">
+            <label class="cfg-toggle"><input type="checkbox" id="cfgSandwich"><span>Refuerzo sándwich <em>doble capa</em></span></label>
+            <label class="cfg-toggle"><input type="checkbox" id="cfgMotor"><span>Refuerzo al motor <em>tiras largas</em></span></label>
+          </div>
+        </div>
+        <div class="cfg-group">
+          <div class="cfg-label">3 · Colores</div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras verticales<span data-sand-only> · capa de arriba</span></span><div class="cfg-swatches" id="cfgMainSwatches"></div></div>
+          <div class="cfg-color-row" data-sand-only><span class="cfg-mini-label">Tiras verticales · capa de abajo</span><div class="cfg-swatches" id="cfgMainBotSwatches"></div></div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Tiras horizontales<span data-sand-only> · capa de arriba</span></span><div class="cfg-swatches" id="cfgAccentSwatches"></div></div>
+          <div class="cfg-color-row" data-sand-only><span class="cfg-mini-label">Tiras horizontales · capa de abajo</span><div class="cfg-swatches" id="cfgAccentBotSwatches"></div></div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Cruces (tapan los huecos)</span><div class="cfg-swatches" id="cfgCrossSwatches"></div></div>
+          <div class="cfg-color-row"><span class="cfg-mini-label">Hilo de costura</span><div class="cfg-swatches" id="cfgThreadSwatches"></div></div>
+        </div>
+        <div class="cfg-group">
+          <div class="cfg-label-row">
+            <div class="cfg-label">4 · Parche central</div>
+            <label class="cfg-toggle cfg-toggle-sm"><input type="checkbox" id="cfgPatchOn" checked><span>Con parche</span></label>
+          </div>
+          <div class="cfg-patch-body" id="cfgPatchBody">
+            <div class="cfg-patch">
+              <canvas id="cfgPatchPreview" width="440" height="440" aria-label="Vista previa del parche"></canvas>
+              <div class="cfg-fields" id="cfgFields">
+                <label><span class="cfg-mini-label">Nombre</span><input id="cfgNombre" class="cfg-input" maxlength="12" value="NOMBRE" autocomplete="off"></label>
+                <label><span class="cfg-mini-label">Número</span><input id="cfgNumero" class="cfg-input" maxlength="3" value="31" inputmode="numeric" autocomplete="off"></label>
+                <label><span class="cfg-mini-label">Marca</span><input id="cfgMarca" class="cfg-input" maxlength="10" value="MARCA" autocomplete="off"></label>
+                <label><span class="cfg-mini-label">Modelo</span><input id="cfgModelo" class="cfg-input" maxlength="6" value="450R" autocomplete="off"></label>
+              </div>
+            </div>
+            <div class="cfg-color-row"><span class="cfg-mini-label">Fondo del parche</span><div class="cfg-swatches" id="cfgPatchBaseSwatches"></div></div>
+            <div class="cfg-color-row"><span class="cfg-mini-label">Brochazos</span><div class="cfg-swatches" id="cfgPatchBrushSwatches"></div></div>
+            <div class="cfg-color-row"><span class="cfg-mini-label">Manchas</span><div class="cfg-swatches" id="cfgPatchDripSwatches"></div></div>
+          </div>
+        </div>
+        <button class="btn btn-red" id="cfgQuoteBtn" type="button">Cotizar esta combinación</button>
+        <p class="cfg-note">Al hacer clic se descarga una imagen de tu diseño y se abre WhatsApp con el resumen. Solo adjunta la imagen descargada en el chat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cotizar en celular: primero se guarda la imagen y después se abre WhatsApp (dos toques),
+     para que el aviso de descarga no se pierda al saltar a WhatsApp -->
+<div class="cfg-sheet" id="cfgSheet" hidden>
+  <div class="cfg-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="cfgSheetTitle">
+    <button class="cfg-sheet-close" type="button" id="cfgSheetClose" aria-label="Cerrar">&times;</button>
+    <div class="cfg-sheet-title" id="cfgSheetTitle">Tu diseño está listo</div>
+    <img class="cfg-sheet-img" id="cfgSheetImg" alt="Imagen de tu diseño">
+    <button class="btn btn-red cfg-sheet-step" type="button" id="cfgSheetSave"><span class="cfg-sheet-num">1</span><span class="cfg-sheet-lbl">Guardar imagen</span></button>
+    <a class="btn cfg-sheet-step cfg-sheet-wa" id="cfgSheetWa" href="https://wa.me/50683196548" target="_blank" rel="noopener"><span class="cfg-sheet-num">2</span><span class="cfg-sheet-lbl">Abrir WhatsApp</span></a>
+    <div class="cfg-sheet-note">Guarda la imagen y después adjúntala en el chat de WhatsApp. En iPhone también puedes mantener presionada la imagen y elegir «Guardar en Fotos».</div>
+  </div>
+</div>
+
+<footer id="contacto">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img class="logo" src="img/foto-01.webp" alt="Racing Nets">
+        <p>Racing Nets para cuadraciclos y automovilismo, hechas a la medida para aguantar cada tramo de pista o cada curva de circuito.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Cotizar</h5>
+        <a href="https://wa.me/50683196548?text=Hola%2C%20quiero%20cotizar%20unas%20Racing%20Nets" target="_blank" rel="noopener">WhatsApp: 8319 6548</a>
+        <a href="https://www.instagram.com/racing_nets" target="_blank" rel="noopener">Instagram: @racing_nets</a>
+      </div>
+      <div class="footer-col">
+        <h5>Sitio</h5>
+        <a href="index.html#producto">Racing Nets</a>
+        <a href="index.html#modelos">Modelos</a>
+        <a href="configurador.html">Configurador 3D</a>
+        <a href="index.html#historia">Historia</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Racing Nets. Todos los derechos reservados.</span>
+      <span>Costa Rica</span>
+    </div>
+  </div>
+</footer>
+
+<!-- El visor 3D (three.js local r128 + configurador) solo se carga en esta página -->
+<script src="js/vendor/three.min.js"></script>
+<script src="js/configurador.js?v=10"></script>
+<script src="js/sitio.js?v=10"></script>
+
+</body>
+</html>
